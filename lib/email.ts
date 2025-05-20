@@ -1,5 +1,3 @@
-// lib/email.ts
-
 import nodemailer from "nodemailer"
 
 interface EmailParams {
@@ -12,6 +10,14 @@ interface EmailParams {
 interface EmailResult {
   success: boolean
   error?: string
+}
+
+// Ajouter la fonction textToHtml si elle n'existe pas déjà
+export function textToHtml(text: string): string {
+  if (!text) return ""
+
+  // Remplacer les sauts de ligne par des balises <br>
+  return text.replace(/\n/g, "<br>").replace(/\r/g, "").replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
 }
 
 function validateEmailConfig() {

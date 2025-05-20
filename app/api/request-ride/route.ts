@@ -3,85 +3,60 @@ import { sendEmail, textToHtml } from "@/lib/email"
 
 export async function POST(request: Request) {
   try {
-    // Récupérer les données du formulaire
     const data = await request.json()
+    const { name, email, phone, pickup, dropoff, date, time, message } = data
 
     // Validation des données
-    if (!data.name || !data.email || !data.phone || !data.pickup || !data.destination) {
+    if (!name || !email || !phone || !pickup || !dropoff) {
       return NextResponse.json(
-        { success: false, error: "Veuillez remplir tous les champs obligatoires" },
+        { success: false, message: "Veuillez remplir tous les champs obligatoires" },
         { status: 400 },
       )
     }
 
-    // Enregistrement en base de données (à implémenter plus tard)
-    console.log("Nouvelle demande de course:", data)
+    // Formatage du message pour l'email
+    const emailSubject = `Nouvelle demande de course: ${name}`
 
-    // Préparer le contenu de l'email pour l'administrateur
-    const adminEmailText = `
-Nouvelle demande de course
+    const emailText = `
+Nouvelle demande de course:
+--------------------------
+Nom: ${name}
+Email: ${email}
+Téléphone: ${phone}
+Lieu de prise en charge: ${pickup}
+Destination: ${dropoff}
+${date ? `Date: ${date}` : ""}
+${time ? `Heure: ${time}` : ""}
+${message ? `Message: ${message}` : ""}
+`
 
-Client: ${data.name}
-Téléphone: ${data.phone}
-Email: ${data.email}
-Adresse de départ: ${data.pickup}
-Destination: ${data.destination}
-Type de transport: ${data.type || "Standard"}
-Informations complémentaires: ${data.notes || "Aucune"}
-    `
+    const emailHtml = textToHtml(emailText)
 
-    // Préparer le contenu de l'email pour le client
-    const clientEmailText = `
-Bonjour ${data.name},
-
-Nous avons bien reçu votre demande de course et nous vous contacterons dans les plus brefs délais pour la confirmer.
-
-Détails de votre demande:
-- Adresse de départ: ${data.pickup}
-- Destination: ${data.destination}
-- Type de transport: ${data.type || "Standard"}
-
-Si vous avez des questions, n'hésitez pas à nous contacter au 06 00 00 00 00.
-
-Merci de votre confiance,
-L'équipe Taxi Dumoulin
-    `
-
-    // Envoyer l'email à l'administrateur
-    const adminEmailResult = await sendEmail({
-      to: process.env.ADMIN_EMAIL || "contact@taxi-dumoulin.fr",
-      subject: "Nouvelle demande de course - Taxi Dumoulin",
-      text: adminEmailText,
-      html: textToHtml(adminEmailText),
+    // Envoi de l'email
+    const emailResult = await sendEmail({
+      to: process.env.ADMIN_EMAIL || "admin@example.com",
+      subject: emailSubject,
+      text: emailText,
+      html: emailHtml,
     })
 
-    // Envoyer l'email de confirmation au client
-    const clientEmailResult = await sendEmail({
-      to: data.email,
-      subject: "Confirmation de votre demande de course - Taxi Dumoulin",
-      text: clientEmailText,
-      html: textToHtml(clientEmailText),
-    })
-
-    // Vérifier si les emails ont été envoyés avec succès
-    if (!adminEmailResult.success || !clientEmailResult.success) {
-      console.error("Erreur d'envoi d'email:", {
-        admin: adminEmailResult,
-        client: clientEmailResult,
-      })
-
-      // On continue quand même pour ne pas bloquer l'utilisateur
-      // mais on enregistre l'erreur
+    if (!emailResult.success) {
+      console.error("Erreur lors de l'envoi de l'email:", emailResult.error)
+      return NextResponse.json(
+        { success: false, message: "Erreur lors de l'envoi de la demande. Veuillez réessayer plus tard." },
+        { status: 500 },
+      )
     }
 
+    // Confirmation
     return NextResponse.json({
       success: true,
-      emailSent: adminEmailResult.success && clientEmailResult.success,
+      message: "Votre demande a été envoyée avec succès. Nous vous contacterons bientôt.",
     })
   } catch (error) {
-    console.error("Erreur:", error)
+    console.error("Erreur lors du traitement de la demande:", error)
     return NextResponse.json(
-      { success: false, error: "Une erreur est survenue lors du traitement de votre demande" },
+      { success: false, message: "Une erreur est survenue. Veuillez réessayer plus tard." },
       { status: 500 },
     )
   }

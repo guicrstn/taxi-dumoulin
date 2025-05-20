@@ -1,47 +1,60 @@
 import { NextResponse } from "next/server"
+import { getReservationById, updateReservationStatus } from "@/app/admin/lib/reservations"
 
 export async function GET(request: Request, { params }: { params: { id: string; action: string } }) {
-  try {
-    const { id, action } = params
-    console.log(`[email-redirect] Redirection pour id=${id}, action=${action}`)
+  const { id, action } = params
 
-    // Vérifier que l'action est valide
-    if (action !== "accept" && action !== "reject") {
-      console.error(`[email-redirect] Action invalide: ${action}`)
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Action non valide",
+  try {
+    const reservation = await getReservationById(id)
+
+    if (!reservation) {
+      return new NextResponse(JSON.stringify({ message: "Reservation not found" }), {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
         },
-        { status: 400 },
-      )
+      })
     }
 
-    // Obtenir l'origine de la requête
-    const requestUrl = new URL(request.url)
-    const origin = requestUrl.origin
+    let newStatus = reservation.status
 
-    console.log(`[email-redirect] URL de la requête: ${request.url}`)
-    console.log(`[email-redirect] Origine détectée: ${origin}`)
+    if (action === "confirm") {
+      newStatus = "confirmed"
+    } else if (action === "cancel") {
+      newStatus = "cancelled"
+    } else {
+      return new NextResponse(JSON.stringify({ message: "Invalid action" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+    }
 
-    // Construire l'URL de redirection complète
-    // Utiliser l'origine de la requête comme base
-    const redirectUrl = `${origin}/admin/reservations/${id}/${action}`
+    if (reservation.status === newStatus) {
+      return new NextResponse(JSON.stringify({ message: `Reservation already ${newStatus}` }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+    }
 
-    console.log(`[email-redirect] URL de redirection: ${redirectUrl}`)
+    await updateReservationStatus(id, newStatus)
 
-    // Rediriger vers la page d'action
-    return NextResponse.redirect(redirectUrl)
-  } catch (error: any) {
-    console.error("[email-redirect] Erreur:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Erreur lors de la redirection",
-        error: error.message,
-        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    return new NextResponse(JSON.stringify({ message: `Reservation ${id} ${action}ed successfully` }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
       },
-      { status: 500 },
-    )
+    })
+  } catch (error: any) {
+    console.error("Error processing reservation action:", error)
+    return new NextResponse(JSON.stringify({ message: "Internal Server Error", error: error.message }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
   }
 }

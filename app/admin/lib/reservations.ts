@@ -58,17 +58,14 @@ export async function getAllReservations(): Promise<Reservation[]> {
   }
 }
 
-// Fonction pour obtenir toutes les réservations d'un client par email
-export async function getAllReservationsByEmail(email: string): Promise<Reservation[]> {
+// Fonction pour écrire les réservations dans le fichier
+export async function writeReservationsFile(reservations: Reservation[]): Promise<void> {
   try {
-    const reservations = await getAllReservations()
-    // Trier les réservations par date de création (les plus récentes d'abord)
-    return reservations
-      .filter((r) => r.email === email)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    ensureDataDirectoryExists()
+    fs.writeFileSync(DATA_FILE, JSON.stringify(reservations, null, 2), "utf8")
   } catch (error) {
-    console.error("[getAllReservationsByEmail] Error:", error)
-    return []
+    console.error("[writeReservationsFile] Error:", error)
+    throw error
   }
 }
 
@@ -83,36 +80,8 @@ export async function getReservationById(id: string): Promise<Reservation | null
   }
 }
 
-// Fonction pour créer une nouvelle réservation
-export async function createReservation(
-  data: Omit<Reservation, "id" | "status" | "createdAt" | "updatedAt">,
-): Promise<Reservation> {
-  try {
-    ensureDataDirectoryExists()
-
-    const reservations = await getAllReservations()
-
-    const newReservation: Reservation = {
-      ...data,
-      id: `res_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-
-    console.log(`[createReservation] Creating new reservation with ID: ${newReservation.id}`)
-
-    reservations.push(newReservation)
-    fs.writeFileSync(DATA_FILE, JSON.stringify(reservations, null, 2), "utf8")
-
-    console.log(`[createReservation] Reservation created successfully. Total reservations: ${reservations.length}`)
-
-    return newReservation
-  } catch (error) {
-    console.error("[createReservation] Error:", error)
-    throw error
-  }
-}
+// Alias pour getReservationById pour compatibilité
+export const getReservation = getReservationById
 
 // Fonction pour mettre à jour le statut d'une réservation
 export async function updateReservationStatus(
@@ -169,6 +138,29 @@ export async function updateReservationStatus(
       status,
     })
     return null
+  }
+}
+
+// Fonctions pour approuver et rejeter des réservations
+export async function approveReservation(id: string, adminNotes?: string): Promise<Reservation | null> {
+  return updateReservationStatus(id, "accepted", adminNotes)
+}
+
+export async function rejectReservation(id: string, adminNotes?: string): Promise<Reservation | null> {
+  return updateReservationStatus(id, "rejected", adminNotes)
+}
+
+// Fonction pour obtenir toutes les réservations d'un client par email
+export async function getAllReservationsByEmail(email: string): Promise<Reservation[]> {
+  try {
+    const reservations = await getAllReservations()
+    // Trier les réservations par date de création (les plus récentes d'abord)
+    return reservations
+      .filter((r) => r.email === email)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  } catch (error) {
+    console.error("[getAllReservationsByEmail] Error:", error)
+    return []
   }
 }
 
@@ -239,5 +231,36 @@ export async function deleteReservationsByEmail(email: string): Promise<number> 
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error("[deleteReservationsByEmail] Error:", errorMessage)
     return 0
+  }
+}
+
+// Fonction pour créer une nouvelle réservation
+export async function createReservation(
+  data: Omit<Reservation, "id" | "status" | "createdAt" | "updatedAt">,
+): Promise<Reservation> {
+  try {
+    ensureDataDirectoryExists()
+
+    const reservations = await getAllReservations()
+
+    const newReservation: Reservation = {
+      ...data,
+      id: `res_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    console.log(`[createReservation] Creating new reservation with ID: ${newReservation.id}`)
+
+    reservations.push(newReservation)
+    fs.writeFileSync(DATA_FILE, JSON.stringify(reservations, null, 2), "utf8")
+
+    console.log(`[createReservation] Reservation created successfully. Total reservations: ${reservations.length}`)
+
+    return newReservation
+  } catch (error) {
+    console.error("[createReservation] Error:", error)
+    throw error
   }
 }
