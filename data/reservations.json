@@ -1,0 +1,19 @@
+[
+  {
+    "id": "res_1747737591793_nwjt7",
+    "clientId": "client_guillaume_gcinformatik_fr",
+    "name": "Guillaume CRISTINI",
+    "email": "guillaume@gcinformatik.fr",
+    "phone": "06.07.41.31.11",
+    "date": "21/05/2025",
+    "time": "",
+    "pickup": "Martignat",
+    "dropoff": "Lyon",
+    "passengers": "1",
+    "message": "Dernier test ",
+    "status": "pending",
+    "adminNotes": "",
+    "createdAt": "2025-05-20T10:39:51.793Z",
+    "updatedAt": "2025-05-20T10:39:51.793Z"
+  }
+]
