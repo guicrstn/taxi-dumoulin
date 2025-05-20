@@ -47,6 +47,14 @@ export default function ContactForm() {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedPhone = formatPhoneNumber(e.target.value)
     setFormData((prev) => ({ ...prev, phone: formattedPhone }))
+
+    // Positionner le curseur après le dernier caractère saisi
+    const input = e.target
+    const pos = formattedPhone.length
+    setTimeout(() => {
+      input.selectionStart = pos
+      input.selectionEnd = pos
+    }, 0)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -153,15 +161,9 @@ export default function ContactForm() {
       }
     } catch (error) {
       console.error("Exception lors de l'envoi du formulaire:", error)
-      // Amélioration de la gestion des erreurs
-      let errorMessage = "Une erreur est survenue lors de l'envoi de votre message."
-      if (error instanceof Error) {
-        errorMessage += ` Détails: ${error.message}`
-        console.error("Stack trace:", error.stack)
-      }
       toast({
         title: "Erreur",
-        description: errorMessage,
+        description: "Une erreur est survenue lors de l'envoi de votre message.",
         variant: "destructive",
       })
     } finally {
