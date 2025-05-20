@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter } from 'next/font/google'
 import "./globals.css"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -19,7 +19,8 @@ export const metadata: Metadata = {
   authors: [{ name: "Taxi Dumoulin" }],
   creator: "Taxi Dumoulin",
   publisher: "Taxi Dumoulin",
-  metadataBase: new URL(process.env.BASE_URL || "http://5.196.29.27:3000"),
+  // Mise à jour de l'URL de base pour utiliser le domaine au lieu de l'IP
+  metadataBase: new URL(process.env.BASE_URL || "https://taxi-dumoulin.com"),
   alternates: {
     canonical: "/",
   },
@@ -27,7 +28,8 @@ export const metadata: Metadata = {
     title: "Taxi Dumoulin - Service de taxi conventionné dans l'Ain",
     description:
       "Service de taxi conventionné disponible 7j/7 pour tous vos déplacements : transport médical, aéroport, gare et longue distance.",
-    url: process.env.BASE_URL || "http://5.196.29.27:3000",
+    // Mise à jour de l'URL pour utiliser le domaine au lieu de l'IP
+    url: process.env.BASE_URL || "https://taxi-dumoulin.com",
     siteName: "Taxi Dumoulin",
     images: [
       {
@@ -46,6 +48,10 @@ export const metadata: Metadata = {
     description:
       "Service de taxi conventionné disponible 7j/7 pour tous vos déplacements : transport médical, aéroport, gare et longue distance.",
     images: ["/images/taxi-dumoulin-logo.png"],
+  },
+  // Ajout de la vérification Google Search Console avec votre code
+  verification: {
+    google: "nZJdvoSw-C70Y87hsYPsBMuCf-qoX5FMF33x3GYbVbQ",
   },
 }
 
