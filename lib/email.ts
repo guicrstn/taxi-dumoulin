@@ -1,70 +1,103 @@
 import nodemailer from "nodemailer"
 
-interface EmailParams {
+// Interface pour typer les erreurs nodemailer
+interface NodemailerError extends Error {
+  code?: string
+  command?: string
+  response?: string
+  responseCode?: number
+}
+
+// Configuration du transporteur Gmail avec plus d'options de débogage
+export const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // false pour le port 587
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+  // Ajout d'options supplémentaires pour le débogage
+  logger: true, // Active les logs détaillés
+  debug: true, // Active le mode debug
+  tls: {
+    // Ne pas échouer en cas de certificat invalide
+    rejectUnauthorized: false,
+  },
+})
+
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text,
+}: {
   to: string
   subject: string
-  text?: string
-  html?: string
-}
-
-interface EmailResult {
-  success: boolean
-  error?: string
-}
-
-// Ajouter la fonction textToHtml si elle n'existe pas déjà
-export function textToHtml(text: string): string {
-  if (!text) return ""
-
-  // Remplacer les sauts de ligne par des balises <br>
-  return text.replace(/\n/g, "<br>").replace(/\r/g, "").replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
-}
-
-function validateEmailConfig() {
-  const requiredVars = ["GMAIL_USER", "GMAIL_APP_PASSWORD", "ADMIN_EMAIL"]
-  const missingVars = requiredVars.filter((varName) => !process.env[varName])
-
-  if (missingVars.length > 0) {
-    console.error(`[email] Variables d'environnement manquantes: ${missingVars.join(", ")}`)
-    return false
-  }
-  return true
-}
-
-export async function sendEmail({ to, subject, text, html }: EmailParams): Promise<EmailResult> {
-  console.log(`[email] Tentative d'envoi d'email à ${to}`)
-
-  // Valider la configuration
-  if (!validateEmailConfig()) {
-    return {
-      success: false,
-      error: "Configuration d'email incomplète. Variables d'environnement manquantes.",
-    }
-  }
-
+  html: string
+  text: string
+}) {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
+    console.log("Tentative d'envoi d'email avec les paramètres suivants:", {
+      from: process.env.GMAIL_USER,
+      to,
+      subject,
+      textLength: text?.length,
+      htmlLength: html?.length,
     })
 
-    const mailOptions = {
-      from: process.env.ADMIN_EMAIL,
-      to: to,
-      subject: subject,
-      text: text,
-      html: html,
+    // Vérifier que les variables d'environnement sont définies
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+      console.error("Variables d'environnement manquantes pour l'envoi d'email:", {
+        GMAIL_USER: !!process.env.GMAIL_USER,
+        GMAIL_APP_PASSWORD: !!process.env.GMAIL_APP_PASSWORD,
+      })
+      return {
+        success: false,
+        error: "Configuration email incomplète. Variables d'environnement manquantes.",
+      }
     }
 
-    await transporter.sendMail(mailOptions)
+    const info = await transporter.sendMail({
+      from: `"Taxi Dumoulin" <${process.env.GMAIL_USER}>`,
+      to,
+      subject,
+      text,
+      html,
+    })
 
-    console.log(`[email] Email envoyé avec succès à ${to}`)
-    return { success: true }
-  } catch (error: any) {
-    console.error(`[email] Erreur lors de l'envoi de l'email à ${to}:`, error)
-    return { success: false, error: error.message }
+    console.log("Email envoyé avec succès:", info.messageId)
+    return { success: true, messageId: info.messageId }
+  } catch (error: unknown) {
+    // Typer l'erreur comme NodemailerError
+    const emailError = error as NodemailerError
+
+    console.error("Erreur détaillée d'envoi d'email:", {
+      error: emailError.message,
+      code: emailError.code,
+      command: emailError.command,
+      response: emailError.response,
+      responseCode: emailError.responseCode,
+      stack: emailError.stack,
+    })
+
+    return {
+      success: false,
+      error: emailError.message,
+      errorDetails: {
+        code: emailError.code,
+        command: emailError.command,
+        response: emailError.response,
+        responseCode: emailError.responseCode,
+      },
+    }
   }
+}
+
+// Fonction pour convertir le texte en HTML simple
+export function textToHtml(text: string): string {
+  return text
+    .replace(/\n/g, "<br>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
 }
