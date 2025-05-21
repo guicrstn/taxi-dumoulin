@@ -13,21 +13,21 @@ export default async function ClientsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Clients</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Clients</h1>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <Badge variant="outline" className="mr-2">
             Total: {clients.length}
           </Badge>
         </div>
-        <div className="flex gap-2">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-auto">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input type="search" placeholder="Rechercher un client..." className="pl-8 w-[250px]" />
+            <Input type="search" placeholder="Rechercher un client..." className="pl-8 w-full" />
           </div>
-          <Link href="/admin/clients/new">
-            <Button className="flex items-center gap-2">
+          <Link href="/admin/clients/new" className="w-full sm:w-auto">
+            <Button className="flex items-center gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               Ajouter un client
             </Button>
@@ -35,16 +35,16 @@ export default async function ClientsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {clients.map((client) => (
           <Card key={client.id} data-id={client.id}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-gray-500" />
-                  {client.name}
+                <div className="flex items-center gap-2 truncate">
+                  <User className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                  <span className="truncate">{client.name}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Link href={`/admin/clients/${client.id}/edit`}>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                       <Pencil className="h-4 w-4 text-gray-500" />
@@ -67,24 +67,28 @@ export default async function ClientsPage() {
             <CardContent>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-gray-400" />
-                  <span>{client.phone}</span>
+                  <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <a href={`tel:${client.phone}`} className="truncate hover:underline">
+                    {client.phone}
+                  </a>
                 </li>
                 {client.email && (
                   <li className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                    <span>{client.email}</span>
+                    <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <a href={`mailto:${client.email}`} className="truncate hover:underline">
+                      {client.email}
+                    </a>
                   </li>
                 )}
                 {client.address && (
-                  <li className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span>{client.address}</span>
+                  <li className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
+                    <span className="break-words">{client.address}</span>
                   </li>
                 )}
                 <li className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span>Client depuis {new Date(client.createdAt).toLocaleDateString()}</span>
+                  <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <span className="truncate">Client depuis {new Date(client.createdAt).toLocaleDateString()}</span>
                 </li>
               </ul>
 
@@ -101,17 +105,15 @@ export default async function ClientsPage() {
                 </div>
               </div>
 
-              <Link href={`/admin/clients/${client.id}`}>
-                <Button variant="outline" size="sm" className="w-full mt-4">
-                  Voir les détails
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" className="w-full mt-4">
+                Voir les détails
+              </Button>
             </CardContent>
           </Card>
         ))}
 
         {clients.length === 0 && (
-          <div className="col-span-3 text-center py-12 bg-gray-50 rounded-lg">
+          <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12 bg-gray-50 rounded-lg">
             <p className="text-gray-500">Aucun client enregistré</p>
             <Link href="/admin/clients/new">
               <Button className="mt-4">
