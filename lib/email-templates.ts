@@ -18,10 +18,10 @@ export function getLogoUrl(): string {
     }
 
     // Fallback: utiliser l'URL relative par défaut
-    return "http://5.196.29.27:3000/logo.JPG"
+    return "https://taxi-dumoulin.com/logo.JPG"
   } catch (error) {
     console.error("Erreur lors de la récupération de l'URL du logo:", error)
-    return "http://5.196.29.27:3000/logo.JPG"
+    return "https://taxi-dumoulin.com/logo.JPG"
   }
 }
 
