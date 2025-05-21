@@ -1,13 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarClock, Users, CheckCircle, Clock } from "lucide-react"
+import { CalendarClock, Users, CheckCircle, Clock, RefreshCw } from "lucide-react"
 import { getAllReservations } from "./lib/reservations"
 import { getClientStats } from "./lib/clients"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
+// Force le rendu dynamique et désactive le cache
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default async function AdminDashboard() {
+  // Récupérer les réservations avec un timestamp pour éviter le cache
+  const timestamp = new Date().getTime()
   const reservations = await getAllReservations()
   const clientStats = await getClientStats()
+
+  console.log(`[AdminDashboard] Loaded ${reservations.length} reservations at ${timestamp}`)
 
   // Calculer les statistiques
   const today = new Date()
@@ -38,9 +46,32 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Tableau de bord</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Tableau de bord</h1>
+        <Link href="/admin">
+          <Button variant="outline" size="sm" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Actualiser
+          </Button>
+        </Link>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Afficher un message de débogage */}
+      {reservations.length > 0 ? (
+        <div className="bg-blue-50 p-4 mb-6 rounded-md">
+          <p className="text-blue-800 text-sm sm:text-base">
+            {reservations.length} réservation(s) trouvée(s). Dernière mise à jour: {new Date().toLocaleTimeString()}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-yellow-50 p-4 mb-6 rounded-md">
+          <p className="text-yellow-800 text-sm sm:text-base">
+            Aucune réservation trouvée. Dernière mise à jour: {new Date().toLocaleTimeString()}
+          </p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Réservations aujourd'hui</CardTitle>
@@ -89,15 +120,18 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Réservations récentes</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Réservations récentes</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             {recentReservations.length === 0 ? (
               <p className="text-gray-500 text-center py-4">Aucune réservation récente</p>
             ) : (
               <div className="space-y-4">
                 {recentReservations.slice(0, 5).map((reservation) => (
-                  <div key={reservation.id} className="flex items-center">
+                  <div
+                    key={reservation.id}
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 border-b pb-3"
+                  >
                     <div
                       className={`w-2 h-2 rounded-full mr-2 ${
                         reservation.status === "accepted"
@@ -107,15 +141,15 @@ export default async function AdminDashboard() {
                             : "bg-yellow-500"
                       }`}
                     />
-                    <div className="flex-1">
-                      <p className="font-medium">{reservation.name}</p>
-                      <p className="text-sm text-gray-500">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{reservation.name}</p>
+                      <p className="text-sm text-gray-500 truncate">
                         {new Date(reservation.createdAt).toLocaleDateString()} - {reservation.pickup} →{" "}
                         {reservation.dropoff}
                       </p>
                     </div>
                     <div
-                      className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      className={`text-xs font-medium px-2 py-1 rounded-full mt-1 sm:mt-0 ${
                         reservation.status === "accepted"
                           ? "bg-green-100 text-green-800"
                           : reservation.status === "rejected"
@@ -138,7 +172,7 @@ export default async function AdminDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Statistiques</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Statistiques</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
