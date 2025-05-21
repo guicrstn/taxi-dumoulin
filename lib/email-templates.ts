@@ -166,7 +166,7 @@ export function createClientConfirmationTemplate(data: any): string {
 // Template pour les emails de réservation
 export function createReservationEmailTemplate(data: any): string {
   // URL fixe vers la page d'administration des réservations
-  const adminUrl = "http://5.196.29.27:3000/admin/reservations"
+  const adminUrl = "https://taxi-dumoulin.com/admin/reservations"
 
   const content = `
     <p>Nouvelle réservation reçue :</p>
