@@ -9,23 +9,20 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Check, X, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { use } from "react"
 
 export default function ReservationActionPage({
   params,
 }: {
-  params: Promise<{ id: string; action: string }>
+  params: { id: string; action: string }
 }) {
-  // Utiliser React.use pour déballer les paramètres
-  const unwrappedParams = use(params)
-  const { id, action } = unwrappedParams
-
+  const { id, action } = params
   const router = useRouter()
   const [adminNotes, setAdminNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reservation, setReservation] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const isAccept = action === "accept"
   const actionText = isAccept ? "Accepter" : "Refuser"
@@ -35,14 +32,29 @@ export default function ReservationActionPage({
   useEffect(() => {
     const fetchReservation = async () => {
       try {
+        setIsLoading(true)
+        console.log(`Récupération des détails de la réservation: ${id}`)
         const response = await fetch(`/api/reservations/${id}`)
+
         if (!response.ok) {
-          throw new Error("Réservation non trouvée")
+          throw new Error(`Erreur HTTP: ${response.status}`)
         }
+
         const data = await response.json()
+        console.log("Données de réservation reçues:", data)
+
+        if (!data.reservation) {
+          throw new Error("Format de réponse invalide: reservation manquante")
+        }
+
         setReservation(data.reservation)
       } catch (error) {
-        setError("Erreur lors de la récupération des détails de la réservation")
+        console.error("Erreur lors de la récupération des détails:", error)
+        setError(
+          `Erreur lors de la récupération des détails de la réservation: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -56,6 +68,8 @@ export default function ReservationActionPage({
 
     try {
       console.log(`Envoi de la requête à /api/reservations/${id}/${action}`)
+      console.log("Données envoyées:", { adminNotes })
+
       const response = await fetch(`/api/reservations/${id}/${action}`, {
         method: "POST",
         headers: {
@@ -69,7 +83,7 @@ export default function ReservationActionPage({
       console.log("Réponse reçue:", data)
 
       if (!response.ok) {
-        throw new Error(data.message || "Une erreur est survenue")
+        throw new Error(data.message || `Erreur HTTP: ${response.status}`)
       }
 
       setSuccess(true)
@@ -79,12 +93,23 @@ export default function ReservationActionPage({
         router.push("/admin/reservations")
         router.refresh() // Forcer le rafraîchissement des données
       }, 2000)
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur lors de la soumission:", error)
-      setError(error.message || "Une erreur est survenue")
+      setError(error instanceof Error ? error.message : String(error))
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container py-10 flex justify-center items-center min-h-[50vh]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Chargement des détails de la réservation...</p>
+        </div>
+      </div>
+    )
   }
 
   if (error) {
@@ -95,7 +120,12 @@ export default function ReservationActionPage({
             <CardTitle className="text-red-600">Erreur</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{error}</p>
+            <p className="mb-4">{error}</p>
+            <div className="p-4 bg-gray-50 rounded-md">
+              <h3 className="text-sm font-medium mb-2">Informations de débogage</h3>
+              <p className="text-xs text-gray-500 mb-2">ID: {id}</p>
+              <p className="text-xs text-gray-500 mb-2">Action: {action}</p>
+            </div>
           </CardContent>
           <CardFooter>
             <Link href="/admin/reservations">
@@ -133,8 +163,23 @@ export default function ReservationActionPage({
 
   if (!reservation) {
     return (
-      <div className="container py-10 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="container py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-600">Erreur</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Impossible de charger les détails de la réservation. Veuillez réessayer.</p>
+          </CardContent>
+          <CardFooter>
+            <Link href="/admin/reservations">
+              <Button variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour aux réservations
+              </Button>
+            </Link>
+          </CardFooter>
+        </Card>
       </div>
     )
   }
@@ -213,7 +258,7 @@ export default function ReservationActionPage({
               </p>
             </div>
 
-            <div className="flex gap-4 mt-6">
+            <div className="flex flex-wrap gap-4 mt-6">
               <Button type="submit" className={actionColor} disabled={isSubmitting}>
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -235,29 +280,6 @@ export default function ReservationActionPage({
           </form>
         </CardContent>
       </Card>
-      {!success && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-md">
-          <h3 className="text-sm font-medium mb-2">Débogage</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              try {
-                const testResponse = await fetch(`/api/reservations/${id}`, {
-                  cache: "no-store",
-                })
-                const testData = await testResponse.json()
-                alert(JSON.stringify(testData, null, 2))
-              } catch (err) {
-                alert("Erreur: " + (err instanceof Error ? err.message : String(err)))
-              }
-            }}
-          >
-            Tester l'API
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
