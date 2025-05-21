@@ -10,14 +10,17 @@ export default function LogoutButton() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = async () => {
-    setIsLoggingOut(true)
     try {
-      await fetch("/api/auth/logout", {
+      setIsLoggingOut(true)
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
       })
-      // Rediriger vers la page de login
-      router.push("/admin/login")
-      router.refresh()
+
+      if (response.ok) {
+        router.push("/admin/login")
+      } else {
+        console.error("Erreur lors de la déconnexion")
+      }
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error)
     } finally {
@@ -27,12 +30,13 @@ export default function LogoutButton() {
 
   return (
     <Button
-      variant="ghost"
-      className="w-full flex items-center justify-center text-gray-300 hover:bg-gray-800 hover:text-white"
+      variant="destructive"
+      size="sm"
       onClick={handleLogout}
       disabled={isLoggingOut}
+      className="w-full flex items-center justify-center gap-2"
     >
-      <LogOut className="h-5 w-5 mr-3" />
+      <LogOut className="h-4 w-4" />
       {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
     </Button>
   )
