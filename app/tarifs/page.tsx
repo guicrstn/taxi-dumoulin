@@ -35,7 +35,7 @@ export default function TarifsPage() {
       <section className="relative">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/taxi-services-bg.png"
+            src="/taxi-services-bg.png"
             alt="Tarifs taxi"
             fill
             className="object-cover brightness-[0.4]"
