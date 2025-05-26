@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Phone, Mail, MapPin, Clock, Facebook, Instagram, Linkedin } from "lucide-react"
+import { Phone, Mail, MapPin, Clock, Facebook, Instagram } from "lucide-react"
 import Image from "next/image"
 
 export default function Footer() {
@@ -8,16 +8,16 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <Image src="/logo.JPG" alt="Taxi Dumoulin" width={160} height={60} className="mb-4" />
+            <Image src="/images/taxi-dumoulin-logo.png" alt="Taxi Dumoulin" width={160} height={60} className="mb-4" />
             <p className="text-gray-400 mb-4">
               Service de taxi conventionné dans l'Ain, disponible 7j/7 pour tous vos déplacements.
             </p>
             <div className="flex space-x-4">
-              <Link href="https://www.facebook.com/taxidumoulin.nantua/" className="text-gray-400 hover:text-white">
+              <Link href="#" className="text-gray-400 hover:text-white">
                 <Facebook className="h-5 w-5" />
               </Link>
-              <Link href="https://www.linkedin.com/company/taxi-dumoulin-fils/" className="text-gray-400 hover:text-white">
-                <Linkedin className="h-5 w-5" />
+              <Link href="#" className="text-gray-400 hover:text-white">
+                <Instagram className="h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -76,6 +76,11 @@ export default function Footer() {
                   Réservation
                 </Link>
               </li>
+              <li>
+                <Link href="/mentions-legales" className="text-gray-400 hover:text-white">
+                  Mentions légales
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -88,9 +93,6 @@ export default function Footer() {
                   <p className="font-medium">Téléphone</p>
                   <Link href="tel:0474751078" className="text-gray-400 hover:text-white">
                     04 74 75 10 78
-                  </Link><br></br>
-                  <Link href="tel:0474750253" className="text-gray-400 hover:text-white">
-                    04 74 75 02 53
                   </Link>
                 </div>
               </li>
@@ -107,7 +109,7 @@ export default function Footer() {
                 <MapPin className="h-5 w-5 text-blue-500 mr-3 mt-1" />
                 <div>
                   <p className="font-medium">Adresse</p>
-                  <p className="text-gray-400">7 route de Genève, 01130 Nantua</p>
+                  <p className="text-gray-400">7 route Genève, 01130 Nantua</p>
                 </div>
               </li>
               <li className="flex items-start">
