@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <Image src="/images/taxi-dumoulin-logo.png" alt="Taxi Dumoulin" width={160} height={60} className="mb-4" />
+            <Image src="/logo.JPG" alt="Taxi Dumoulin" width={160} height={60} className="mb-4" />
             <p className="text-gray-400 mb-4">
               Service de taxi conventionné dans l'Ain, disponible 7j/7 pour tous vos déplacements.
             </p>
