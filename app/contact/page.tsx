@@ -35,7 +35,7 @@ export default function ContactPage() {
       <section className="relative">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/taxi-hero-bg.png"
+            src="/taxi-contact-bg.png"
             alt="Contact taxi"
             fill
             className="object-cover brightness-[0.4]"
